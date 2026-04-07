@@ -1,0 +1,27 @@
+# ── Core API ──────────────────────────────────────────────────────────────────
+fastapi>=0.135.0
+uvicorn>=0.41.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+python-dotenv>=1.0.0
+
+# ── LangChain / LangGraph ─────────────────────────────────────────────────────
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-openai>=0.2.0
+langchain-community>=0.3.0
+langgraph>=0.2.0
+
+# ── Azure Services ────────────────────────────────────────────────────────────
+openai>=2.0.0
+azure-search-documents>=11.6.0
+azure-cosmos>=4.15.0
+azure-core>=1.38.0
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+httpx>=0.28.0        # async HTTP (used by test suite)
+tiktoken>=0.9.0      # token counting for memory management
+aiohttp>=3.8.0       # async HTTP client
+
+# ── Observability (LangSmith tracing) ────────────────────────────────────────
+langsmith>=0.1.0

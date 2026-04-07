@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Subul — Roadmap Certifications Personnalisé</title>
+    <meta name="description" content="Obtenez un parcours de certifications Cloud, Cybersécurité, IA et IoT personnalisé grâce à l'IA." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      
+      :root {
+        /* Soft color palette */
+        --color-primary-50: #f5f3ff;
+        --color-primary-100: #ede9fe;
+        --color-primary-200: #ddd6fe;
+        --color-primary-300: #c4b5fd;
+        --color-primary-400: #a78bfa;
+        --color-primary-500: #8b5cf6;
+        --color-primary-600: #7c3aed;
+        --color-primary-700: #6d28d9;
+        
+        --color-cloud: #60a5fa;
+        --color-cyber: #f87171;
+        --color-ai: #a78bfa;
+        --color-iot: #34d399;
+        
+        --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08);
+        --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.05);
+        --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.12);
+        
+        --transition-fast: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-default: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-spring: all 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      
+      html {
+        scroll-behavior: smooth;
+      }
+      
+      body { 
+        font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #e0e7ff 100%);
+        min-height: 100vh;
+      }
+      
+      /* Animations */
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(30px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+      
+      @keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+      }
+      
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+      
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      
+      @keyframes bounceIn {
+        0% { transform: scale(0.3); opacity: 0; }
+        50% { transform: scale(1.05); }
+        70% { transform: scale(0.9); }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      
+      @keyframes wave {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-4px); }
+      }
+      
+      /* Animation utilities */
+      .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
+      .animate-slideUp { animation: slideUp 0.5s ease-out forwards; }
+      .animate-scaleIn { animation: scaleIn 0.3s ease-out forwards; }
+      .animate-float { animation: float 3s ease-in-out infinite; }
+      .animate-pulse-soft { animation: pulse 2s ease-in-out infinite; }
+      .animate-spin { animation: spin 1s linear infinite; }
+      .animate-bounceIn { animation: bounceIn 0.5s ease-out forwards; }
+      
+      /* Stagger delays */
+      .delay-100 { animation-delay: 100ms; }
+      .delay-200 { animation-delay: 200ms; }
+      .delay-300 { animation-delay: 300ms; }
+      .delay-400 { animation-delay: 400ms; }
+      .delay-500 { animation-delay: 500ms; }
+      
+      /* Scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(139, 92, 246, 0.3);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(139, 92, 246, 0.5);
+      }
+      
+      /* Selection color */
+      ::selection {
+        background: rgba(139, 92, 246, 0.2);
+        color: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/main.tsx"></script>
+  </body>
+</html>
