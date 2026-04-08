@@ -1,469 +1,367 @@
+# MultiAgent Roadmap
 
+> AI-powered certification roadmap generator using LangChain Multi-Agent orchestration
+
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688.svg)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://react.dev/)
+[![LangChain](https://img.shields.io/badge/LangChain-0.1+-green.svg)](https://langchain.com/)
 
 ## 🎯 Overview
 
- AI-powered certification roadmap generator that helps users discover their cloud/tech profile and generates personalized learning paths through a multi-phase assessment system.
+MultiAgent Roadmap is an intelligent certification planning system that uses multiple specialized AI agents to:
 
-**Core Components:**
-1. **Assessment System** — Detects user profile (Cloud, Cyber, AI, IoT)
-2. **Level Evaluation** — Determines skill level (Débutant → Expert)
-3. **Roadmap Generation** — Creates personalized certification roadmap
-4. **Coach Agent** — Provides AI tutoring and guidance
+1. **Assess user profile** — Detect dominant IT domain (Cloud, Cybersecurity, AI, IoT)
+2. **Evaluate skill level** — Determine experience level (Débutant → Expert)
+3. **Generate personalized roadmaps** — Create step-by-step certification plans
+4. **Provide AI coaching** — Answer questions about certifications and study strategies
+5. **Negotiate modifications** — Adjust roadmaps based on user feedback
 
----
+## 🏗️ Architecture
+
+### LangGraph Multi-Agent Orchestration
+
+This project uses **LangGraph** to orchestrate multiple specialized AI agents through a stateful workflow graph. Unlike simple LLM chains, LangGraph maintains persistent state across agent interactions and enables complex multi-step reasoning.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         MultiAgent Roadmap System                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐ │
+│  │   Critic    │    │   Profile   │    │   Level     │    │   Coach     │ │
+│  │   Agent     │    │   Analysis  │    │ Diagnostics │    │   Agent     │ │
+│  │             │    │   Agent     │    │   Agent     │    │             │ │
+│  │  Validates  │    │  Enriches   │    │  Analyzes   │    │  Converses  │ │
+│  │  roadmaps   │    │   profile   │    │   skills    │    │  with user  │ │
+│  └──────┬──────┘    └──────┬──────┘    └──────┬──────┘    └──────┬──────┘ │
+│         │                  │                  │                  │        │
+│         └──────────────────┴──────────────────┘                  │        │
+│                            │                                     │        │
+│                            ▼                                     ▼        │
+│                   ┌─────────────────┐                ┌─────────────────┐  │
+│                   │  LangChain      │                │  RoadmapNegotiation│ │
+│                   │  RoadmapAgent   │◄───────────────│      Agent      │  │
+│                   │                 │   (modifications)                 │  │
+│                   └────────┬────────┘                └─────────────────┘  │
+│                            │                                             │
+│                            ▼                                             │
+│                   ┌─────────────────┐                                    │
+│                   │  Azure OpenAI   │                                    │
+│                   │     LLM         │                                    │
+│                   └─────────────────┘                                    │
+│                                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                              External Services                              │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐                     │
+│  │ Azure Search│    │  Cosmos DB  │    │ Azure OpenAI│                     │
+│  │   Index     │    │   Memory    │    │     LLM     │                     │
+│  └─────────────┘    └─────────────┘    └─────────────┘                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Why LangGraph?
+
+**LangGraph** is a framework for building stateful, multi-actor applications with LLMs. In this project, it solves:
+
+| Problem | LangGraph Solution |
+|---------|-------------------|
+| Multi-step workflow | StateGraph with conditional edges between phases |
+| State persistence | `AgentState` TypedDict maintains context across API calls |
+| Agent orchestration | Each node can invoke sub-agents (Critic, ProfileAnalysis, etc.) |
+| Retry logic | Built-in error handling and re-invocation |
+| Streaming | Real-time roadmap delivery via `ainvoke()` |
+
+### LangGraph Implementation Details
+
+#### 1. AgentState (Shared State Container)
+
+```python
+# backend/agents/base.py
+class AgentState(TypedDict):
+    """State managed by LangGraph throughout the agent lifecycle."""
+    messages: List[BaseMessage]      # Conversation history (standard LangGraph field)
+    user_id: str
+    session_id: str
+    profile: Optional[str]           # Detected profile: cloud/cyber/ai/iot
+    level: Optional[str]             # Skill level: Débutant/Intermédiaire/Expert
+    profile_data: Optional[Dict]       # Enriched profile from ProfileAnalysisAgent
+    level_data: Optional[Dict]       # Skill gaps from LevelDiagnosticsAgent
+    roadmap_data: Optional[Dict]       # Generated roadmap output
+    current_phase: str               # assessment | level_test | generating | complete
+    memory_context: str              # Cosmos DB historical context
+```
+
+#### 2. RoadmapAgentGraph (The Workflow Engine)
+
+```python
+# backend/agents/roadmap_agent.py
+class RoadmapAgentGraph:
+    """
+    LangGraph workflow orchestrating three phases:
+    - assessment: Profile detection
+    - level_test: Skill evaluation  
+    - roadmap: Certification plan generation
+    """
+    
+    def _build_graph(self):
+        workflow = StateGraph(AgentState)
+        
+        # Three nodes = three application phases
+        workflow.add_node("assessment", assessment_node)      # Phase 1
+        workflow.add_node("level_test", level_test_node)      # Phase 2
+        workflow.add_node("roadmap", roadmap_node)            # Phase 3
+        
+        # Conditional transitions
+        workflow.set_entry_point("assessment")
+        workflow.add_conditional_edges(
+            "assessment",
+            lambda s: "level_test" if s.get("profile") else END
+        )
+        workflow.add_conditional_edges(
+            "level_test", 
+            lambda s: "roadmap" if s.get("level") else END
+        )
+        workflow.add_edge("roadmap", END)
+        
+        return workflow.compile()
+```
+
+#### 3. Visual Workflow
+
+```
+┌─────────────┐    profile detected     ┌─────────────┐    level evaluated    ┌─────────────┐
+│  assessment │ ─────────────────────▶│  level_test │ ────────────────────▶│   roadmap   │
+│   (nœud 1)  │                       │   (nœud 2)  │                      │   (nœud 3)  │
+└─────────────┘                       └─────────────┘                      └─────────────┘
+                                                                             │
+                                                                             ▼
+                                                                    ┌─────────────────┐
+                                                                    │ LLM Generation  │
+                                                                    │ + CriticAgent   │
+                                                                    │ + Validation    │
+                                                                    │ + Resources     │
+                                                                    └─────────────────┘
+```
+
+#### 4. Integration with Sub-Agents
+
+The `roadmap_node` executes a multi-agent pipeline:
+
+```python
+async def roadmap_node(state: AgentState) -> Dict:
+    # 1. Enrich with ProfileAnalysisAgent + LevelDiagnosticsAgent (parallel)
+    profile_context = await profile_agent.analyze(state["profile_data"])
+    level_context = await level_agent.diagnose(state["level_data"])
+    
+    # 2. Generate roadmap via LLM
+    roadmap = await generate_roadmap(
+        profile=state["profile"],
+        level=state["level"],
+        memory_context=f"{profile_context}\n{level_context}"
+    )
+    
+    # 3. CriticAgent validation gate (score ≥ 7 or auto-correct)
+    roadmap = await critic_agent.evaluate(roadmap, state["profile"], state["level"])
+    
+    # 4. Inject authoritative resources (prices/links)
+    roadmap = inject_resources(roadmap)
+    
+    return {"roadmap_data": roadmap, "current_phase": "complete"}
+```
+
+#### 5. SessionStateManager (Bridge between API and LangGraph)
+
+```python
+# backend/agents/base.py
+class SessionStateManager:
+    """
+    In-memory store mapping session_id → AgentState.
+    Each API endpoint updates AgentState so LangGraph always has current context.
+    """
+    
+    def get_or_create(self, session_id: str, user_id: str) -> AgentState:
+        # Initialize empty state for new session
+        
+    def update(self, session_id: str, **fields) -> AgentState:
+        # Update state after each API call (assessment submit, level evaluate, etc.)
+```
+
+### Agent Collaboration Flow
+
+```
+User Assessment ──► ProfileAnalysisAgent ──► LevelDiagnosticsAgent
+                                                          │
+                                                          ▼
+                              ┌──────────────────────────────────────┐
+                              │   LangChainRoadmapAgent              │
+                              │   ┌─────────────────────────────┐    │
+                              │   │  1. Generate roadmap        │    │
+                              │   │  2. CriticAgent validates   │    │
+                              │   │     (score ≥ 7 or retry)     │    │
+                              │   │  3. Inject resources          │    │
+                              │   └─────────────────────────────┘    │
+                              └──────────────────────────────────────┘
+                                              │
+                                              ▼
+                              ┌──────────────────────────────────────┐
+                              │  EvaluationAgent (async)           │
+                              │  Grades roadmap quality              │
+                              └──────────────────────────────────────┘
+                                              │
+                                              ▼
+                                    RoadmapNegotiationAgent
+                                    (multi-turn modifications)
+                                              │
+                                              ▼
+                                        CoachAgent
+                                    (Q&A about roadmap)
+```
 
 ## 📁 Project Structure
 
 ```
-roadmap_Agent/
-├── frontend/                    # React + TypeScript UI
-│   ├── App.tsx                 # Landing page with soft animations
-│   ├── AssessmentModal.tsx     # Profile detection quiz
-│   ├── QuizFlowManager.tsx     # Orchestrates quiz → roadmap flow
-│   ├── QuizNiv.tsx             # Level evaluation (12 questions)
-│   ├── RoadmapView.tsx         # Generated roadmap display
-│   ├── CoachChat.tsx           # AI coach chat interface
-│   ├── ProgressDashboard.tsx   # User progress tracking
-│   ├── ai-agent.service.ts     # API client
-│   └── design-system.ts        # Soft UI design tokens
-│
-├── src/agents/                 # (empty) LangGraph agent definitions
-├── src/api/                    # (empty) Additional API modules
-├── src/config/                 # (empty) Configuration
-├── src/graph/                  # (empty) LangGraph workflows
-│
-├── langchain_agent.py          # Core AI agent (roadmap generation)
-├── langchain_api_server.py     # FastAPI server (all endpoints)
-├── assessment_system.py        # Assessment logic + skill gap analysis
-├── memory_management.py        # CosmosDB persistence
-├── search_index_manager.py     # Azure Search integration
-├── questions.json              # Assessment questions database
-├── fallback_roadmaps.json      # Backup roadmap templates
-└── requirements.txt            # Python dependencies
+MultiAgent-Roadmap/
+├── backend/                          # Python FastAPI backend
+│   ├── app/
+│   │   ├── agents/                   # LangChain agent implementations
+│   │   │   ├── __init__.py
+│   │   │   ├── critic.py             # CriticAgent
+│   │   │   ├── profile_analysis.py   # ProfileAnalysisAgent
+│   │   │   ├── level_diagnostics.py  # LevelDiagnosticsAgent
+│   │   │   ├── evaluation.py         # EvaluationAgent
+│   │   │   ├── coach.py              # CoachAgent
+│   │   │   ├── assessment_generator.py
+│   │   │   └── negotiation.py        # RoadmapNegotiationAgent
+│   │   ├── api/                      # FastAPI routes
+│   │   │   ├── __init__.py
+│   │   │   └── routes.py             # API endpoints
+│   │   ├── core/                     # Configuration & constants
+│   │   │   ├── __init__.py
+│   │   │   ├── config.py             # Settings
+│   │   │   └── constants.py          # CERT_RESOURCES, etc.
+│   │   ├── models/                   # Pydantic models
+│   │   │   ├── __init__.py
+│   │   │   ├── roadmap.py            # RoadmapOutput, CertificationOutput
+│   │   │   └── assessment.py         # AssessmentQuestion, ProfileData
+│   │   └── services/                 # Business logic
+│   │       ├── __init__.py
+│   │       ├── roadmap_agent.py      # LangChainRoadmapAgent
+│   │       ├── assessment.py         # AssessmentAPI
+│   │       └── memory.py             # RoadmapMemoryManager
+│   └── tests/                        # Test suite
+├── frontend/                         # React + TypeScript frontend
+│   ├── src/
+│   │   ├── components/               # React components
+│   │   │   ├── App.tsx
+│   │   │   ├── AssessmentModal.tsx
+│   │   │   ├── CoachChat.tsx
+│   │   │   ├── QuizFlowManager.tsx
+│   │   │   ├── QuizNiv.tsx
+│   │   │   ├── RoadmapView.tsx
+│   │   │   └── ProgressDashboard.tsx
+│   │   ├── services/                 # API clients
+│   │   │   └── ai-agent.service.ts
+│   │   ├── types/                    # TypeScript types
+│   │   ├── hooks/                    # Custom React hooks
+│   │   └── utils/                    # Utility functions
+│   ├── index.html
+│   └── package.json
+├── data/                             # Static data files
+│   ├── questions.json
+│   └── fallback_roadmaps.json
+├── saved_roadmaps/                   # User saved roadmaps
+├── .env                              # Environment variables
+├── requirements.txt                  # Python dependencies
+└── README.md                         # This file
 ```
 
----
-
-## 🔄 User Flow
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  PHASE 1: PROFILE DETECTION                                       │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐  │
-│  │ User lands  │───▶│ Clicks      │───▶│ AssessmentModal.tsx │  │
-│  │ on App.tsx  │    │ "Démarrer"  │    │ 12 questions        │  │
-│  └─────────────┘    └─────────────┘    └─────────────────────┘  │
-│                           │                                       │
-│                           ▼                                       │
-│              ┌──────────────────────┐                            │
-│              │ POST /assessment/    │                            │
-│              │        questions       │                            │
-│              │ (from questions.json  │                            │
-│              │  or dynamic LLM gen)   │                            │
-│              └──────────────────────┘                            │
-│                           │                                       │
-│                           ▼                                       │
-│              ┌──────────────────────┐                            │
-│              │ POST /assessment/    │                            │
-│              │        submit        │                            │
-│              │ + confidence data    │                            │
-│              │ → ProfileResult      │                            │
-│              └──────────────────────┘                            │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  PHASE 2: LEVEL EVALUATION                                        │
-│  ┌─────────────────────┐    ┌─────────────────────────────┐   │
-│  │ QuizFlowManager.tsx │───▶│ QuizNiv.tsx                   │   │
-│  │ receives profile    │    │ Profile-specific questions    │   │
-│  │ (cloud/cyber/ai/iot)│    │ (3 per profile = 12 total)    │   │
-│  └─────────────────────┘    └─────────────────────────────┘   │
-│                                     │                           │
-│                                     ▼                           │
-│                          ┌────────────────────┐                │
-│                          │ POST /level/       │                │
-│                          │      questions     │                │
-│                          │      evaluate      │                │
-│                          │ → LevelResult      │                │
-│                          └────────────────────┘                │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  PHASE 3: ROADMAP GENERATION                                    │
-│  ┌─────────────────────┐    ┌─────────────────────────────┐   │
-│  │ QuizFlowManager.tsx │───▶│ POST /generate (streaming)  │   │
-│  │                     │    │                             │   │
-│  └─────────────────────┘    │ LangChain agent:            │   │
-│                             │ 1. Build AgentState         │   │
-│                             │ 2. Run LangGraph workflow   │   │
-│                             │ 3. Pydantic validation      │   │
-│                             │ 4. CriticAgent scoring      │   │
-│                             │ 5. Fallback if needed       │   │
-│                             │ → RoadmapOutput (SSE)       │   │
-│                             └─────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  PHASE 4: COACH & PROGRESS                                      │
-│  ┌─────────────┐    ┌─────────────────────────────────────────┐ │
-│  │ RoadmapView │───▶│ CoachChat.tsx                           │ │
-│  │ displays    │    │ POST /coach/message                     │ │
-│  │ roadmap     │    │                                         │ │
-│  └─────────────┘    │ Context-aware AI coach with roadmap     │ │
-│                     │ memory from current session             │ │
-│                     └─────────────────────────────────────────┘ │
-│                                                                 │
-│  ┌─────────────┐    ┌─────────────────────────────────────────┐ │
-│  │ User clicks │───▶│ ProgressDashboard.tsx                   │ │
-│  │ "Progrès"   │    │ GET /progress/{user_id}                 │ │
-│  └─────────────┘    │ Shows all past sessions + progress      │ │
-│                     └─────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🔧 Component Details
-
-### 1. Assessment System (`assessment_system.py`)
-
-**Purpose:** Detect user's primary profile across 4 domains
-
-**Key Classes:**
-```python
-class AssessmentSystem:
-    - get_all_questions()          # Returns 12 shuffled questions
-    - calculate_profile()          # Scores answers → ProfileResult
-    - Adaptive assessment support  # CAT (Computer Adaptive Testing)
-
-class SkillGapAnalyzer:
-    - analyze_gaps()               # Identifies weak areas
-    - generate_learning_path()     # Recommends resources
-
-class ConfidenceScorer:
-    - apply_confidence_weights()   # Adjusts scores by user confidence
-
-class DynamicQuestionGenerator:
-    - generate_questions()         # LLM-generated fresh questions
-```
-
-**API Endpoints:**
-- `POST /api/roadmap/assessment/questions` — Get questions
-- `POST /api/roadmap/assessment/submit` — Submit answers + get profile
-- `POST /api/roadmap/assessment/skill-gaps` — Get detailed gap analysis
-- `POST /api/roadmap/assessment/dynamic-questions` — Generate fresh questions
-
-**Data Flow:**
-```
-User answers → calculate_profile() → 
-    ProfileResult {
-        primary_profile: "cloud",
-        scores: {cloud: 85, cyber: 45, ai: 30, iot: 10},
-        strengths: ["Architecture cloud"],
-        weaknesses: ["Sécurité réseau"],
-        recommended_first_cert: "AZ-900"
-    }
-```
-
----
-
-### 2. Level Evaluation (`QuizNiv.tsx` + backend)
-
-**Purpose:** Determine skill level within detected profile
-
-**Flow:**
-1. Frontend requests profile-specific questions
-2. Backend returns 12 questions (3 per sub-domain)
-3. User answers → POST /level/evaluate
-4. Returns level: Débutant / Débutant+ / Intermédiaire / Intermédiaire+ / Expert
-
-**Scoring:**
-- Correct answers → +10 points per question
-- Level thresholds: 0-30 (Débutant), 31-60 (Intermédiaire), 61-100 (Expert)
-
----
-
-### 3. Roadmap Generation (`langchain_agent.py`)
-
-**Architecture: LangGraph Workflow**
-
-```
-┌───────────────────────────────────────────────────────────────┐
-│                    LangGraph Agent Flow                       │
-│                                                               │
-│  ┌─────────┐    ┌─────────────┐    ┌─────────────────────┐  │
-│  │  START  │───▶│ Build State │───▶│  LLM Generation     │  │
-│  │         │    │ (profile +  │    │  (roadmap_node)     │  │
-│  └─────────┘    │  level)     │    │                     │  │
-│                 └─────────────┘    └─────────────────────┘  │
-│                                              │                │
-│                              ┌───────────────┘                │
-│                              ▼                                │
-│                   ┌──────────────────────┐                   │
-│                   │ Pydantic Validation  │                   │
-│                   │ (RoadmapOutput)      │                   │
-│                   └──────────────────────┘                   │
-│                              │                                │
-│               ┌──────────────┴──────────────┐                 │
-│               ▼                              ▼                │
-│    ┌─────────────────────┐      ┌─────────────────────┐       │
-│    │  Validation OK      │      │  Validation Error   │       │
-│    │  → CriticAgent      │      │  → Retry with error │       │
-│    │     scoring         │      │     context         │       │
-│    └─────────────────────┘      └─────────────────────┘       │
-│               │                                              │
-│               ▼                                              │
-│    ┌─────────────────────┐                                   │
-│    │ Score >= 7?         │                                   │
-│    │ Yes: Return roadmap │                                   │
-│    │ No:  Auto-correct   │                                   │
-│    └─────────────────────┘                                   │
-│                                                              │
-│  Fallback: If all retries fail → fallback_roadmaps.json     │
-└───────────────────────────────────────────────────────────────┘
-```
-
-**Key Features:**
-- **Pydantic Validation:** Every LLM output validated against `RoadmapOutput` schema
-- **CriticAgent:** Scores roadmap 1-10, triggers auto-correction if < 7
-- **Streaming:** SSE (Server-Sent Events) for real-time roadmap delivery
-- **CERT_RESOURCES:** Hardcoded links/prices for 40+ certifications
-- **Memory:** CosmosDB persistence for user history
-
-**Output Schema (`RoadmapOutput`):**
-```python
-{
-    roadmap_title: str,
-    roadmap_summary: str,
-    total_estimated_weeks: int,
-    total_certifications: int,
-    phases: [{
-        phase_number: int,
-        phase_name: str,
-        duration_weeks: int,
-        certifications: [{
-            ordre: int,
-            nom: str,
-            code: str,
-            provider: str,
-            heures_etude: int,
-            plan_semaine: [...],
-            prix_examen_eur: str,      
-            lien_formation: str,        
-            lien_inscription: str      
-        }]
-    }],
-    debouches: [{
-        titre_poste: str,
-        salaire_moyen_eur: str,
-        entreprises_type: [...]
-    }]
-}
-```
-
----
-
-### 4. Coach Agent (`CoachChat.tsx` + backend)
-
-**Purpose:** AI tutor for certification questions
-
-**Features:**
-- Context-aware (knows user's current roadmap)
-- Remembers conversation history per session
-- Can answer certification-specific questions
-- Provides study tips and encouragement
-
-**API:** `POST /api/roadmap/coach/message`
-
-```typescript
-interface CoachMessageRequest {
-    session_id: string;
-    user_id: string;
-    message: string;
-    roadmap_context?: string;  
-}
-```
-
-**System Prompt:**
-```
-Tu es Coach Subul, un mentor bienveillant pour les certifications cloud.
-Tu connais le parcours de l'apprenant et tu l'aides à progresser.
-```
-
----
-
-### 5. Progress Tracking (`ProgressDashboard.tsx`)
-
-**Purpose:** Show user's learning journey
-
-**API:** `GET /api/roadmap/progress/{user_id}`
-
-**Features:**
-- Lists all past sessions
-- Shows completed/in-progress certifications
-- Tracks XP and achievements
-- Compares progress across attempts
-
----
-
-## 🎨 Frontend Architecture
-
-### Soft Design System (New)
-
-```typescript
-// design-system.ts exports:
-colors: {
-    primary: { 50: '#f5f3ff', 100: '#ede9fe', ... 900: '#4c1d95' },
-    secondary: { cloud: '#60a5fa', cyber: '#f87171', ai: '#a78bfa', iot: '#34d399' }
-}
-glass: {
-    light: { background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)' }
-}
-gradients: {
-    soft: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #ddd6fe 100%)',
-    primary: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)'
-}
-animations: {
-    fadeIn, slideUp, slideInRight, scaleIn, float, pulse, shimmer
-}
-```
-
-### Component Hierarchy
-
-```
-App.tsx (Landing)
-    ├── BackgroundBlobs (animated floating shapes)
-    ├── DomainBadges (hover effects)
-    ├── PrimaryButton (shine effect)
-    └── SecondaryButtons
-
-QuizFlowManager (Orchestrator)
-    ├── AssessmentModal (Phase 1)
-    │   └── Confidence Slider overlay
-    ├── QuizNiv (Phase 2)
-    └── RoadmapView (Phase 3)
-        └── Certification cards with weekly plans
-
-CoachChat (Separate modal)
-ProgressDashboard (Separate modal)
-```
-
----
-
-## 🔌 API Endpoints Summary
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/roadmap/assessment/questions` | POST | Get assessment questions |
-| `/api/roadmap/assessment/submit` | POST | Submit answers, get profile |
-| `/api/roadmap/assessment/skill-gaps` | POST | Get skill gap analysis |
-| `/api/roadmap/assessment/dynamic-questions` | POST | Generate fresh LLM questions |
-| `/api/roadmap/level/questions` | POST | Get level evaluation questions |
-| `/api/roadmap/level/evaluate` | POST | Evaluate level answers |
-| `/api/roadmap/generate` | POST | Generate roadmap (SSE streaming) |
-| `/api/roadmap/progress/{user_id}` | GET | Get user progress |
-| `/api/roadmap/progress/record` | POST | Record session progress |
-| `/api/roadmap/coach/message` | POST | Send message to coach |
-| `/api/roadmap/benchmark/{user_id}` | GET | Get percentile rankings |
-
----
-
-## 🧠 Enhanced Features (Recently Added)
-
-### 1. Skill Gap Analysis
-- Analyzes weak domains after assessment
-- Generates learning path with time estimates
-- Shows priority levels (critique/important/mineur)
-
-### 2. Confidence Scoring
-- User rates confidence 1-5 per answer
-- Adjusts domain scores based on confidence
-- Better calibration of actual knowledge
-
-### 3. Dynamic Question Generation
-- Azure Search + LLM for fresh questions
-- Personalized based on profile
-- Mix of classic + LLM questions
-
-### 4. Benchmarking System
-- Compares scores to peer group
-- Shows percentile rankings
-- (Note: Hidden from UI per user request)
-
----
-
-## 🗄️ Data Persistence
-
-### User ID Strategy
-```typescript
-const userId = localStorage.getItem('subul_user_id') || 
-               `user_${Date.now()}_${random()}`
-```
-
-### CosmosDB Schema
-```
-Container: roadmap-sessions
-    - Partition key: /user_id
-    - Items: Session documents with:
-        - profile, level, roadmap
-        - timestamps, scores
-        - progress tracking
-```
-
----
-
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.9+
+
+- Python 3.10+
 - Node.js 18+
 - Azure OpenAI access
-- Azure CosmosDB (optional, for persistence)
-- Azure Search (optional, for dynamic questions)
+- Azure Cosmos DB (optional, for persistence)
+- Azure AI Search (optional, for enrichment)
 
 ### Backend Setup
+
 ```bash
-cd roadmap_Agent
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: .\venv\Scripts\Activate.ps1
+
+# Install dependencies
 pip install -r requirements.txt
-# Set .env variables
-python langchain_api_server.py  # Runs on :8002
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your Azure credentials
+
+# Start server
+python backend/app/api/routes.py  # or: uvicorn backend.app.api.routes:app --reload
 ```
 
 ### Frontend Setup
+
 ```bash
-cd roadmap_Agent/frontend
+cd frontend
 npm install
-npm run dev  # Runs on :5173
+npm run dev
 ```
+
+## 🎓 Usage Flow
+
+1. **Assessment Phase** — User answers 40 questions covering 4 domains
+2. **Profile Detection** — System identifies dominant profile (Cloud/Cyber/AI/IoT)
+3. **Level Quiz** — 10 adaptive questions determine experience level
+4. **Roadmap Generation** — Multi-agent pipeline creates personalized plan
+5. **Negotiation** — User can request modifications ("make it faster", "focus on security")
+6. **Coaching** — AI assistant answers questions about certifications
+
+## 🤖 Agents Reference
+
+| Agent | Responsibility | Trigger |
+|-------|---------------|---------|
+| **CriticAgent** | Quality gate (1-10 scoring) | After roadmap generation |
+| **ProfileAnalysisAgent** | Narrative profile enrichment | After assessment submission |
+| **LevelDiagnosticsAgent** | Learning gap analysis | After level quiz |
+| **EvaluationAgent** | Quality metrics (async) | Post-generation |
+| **CoachAgent** | Conversational Q&A | User chat messages |
+| **AssessmentQuestionGeneratorAgent** | Generate quiz questions | Assessment start |
+| **RoadmapNegotiationAgent** | Multi-turn modifications | User negotiation requests |
+
+## 📡 API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/roadmap/health` | GET | Service health check |
+| `/api/roadmap/assessment/questions` | POST | Get assessment questions |
+| `/api/roadmap/assessment/submit` | POST | Submit answers, get profile |
+| `/api/roadmap/level/questions` | POST | Get level quiz questions |
+| `/api/roadmap/level/evaluate` | POST | Submit level answers |
+| `/api/roadmap/generate` | POST | Generate roadmap (streaming) |
+| `/api/roadmap/coach` | POST | Chat with coach agent |
+| `/api/roadmap/negotiate` | POST | Negotiate roadmap changes |
+
+## 🛠️ Tech Stack
+
+- **Backend**: Python, FastAPI, LangChain/LangGraph, Pydantic
+- **Frontend**: React, TypeScript, Vite
+- **LLM**: Azure OpenAI (GPT-4o)
+- **Vector Search**: Azure AI Search
+- **Memory**: Azure Cosmos DB (optional)
+
+## 📄 License
+
+MIT License - see LICENSE file for details.
+
+## 👤 Author
+
+**Nourhene** — [GitHub](https://github.com/Nourhene123)
 
 ---
 
-## 📊 Current State Summary
-
-✅ **Working:**
-- Profile detection (12 questions)
-- Level evaluation (per profile)
-- Roadmap generation (streaming)
-- Coach agent (context-aware)
-- Progress tracking
-- Soft UI design (glassmorphism)
-- Confidence scoring
-- Skill gap analysis
-
-🔧 **Architecture:**
-- FastAPI backend with LangGraph
-- React + TypeScript frontend
-- Azure OpenAI for LLM
-- Optional Azure Search/CosmosDB
-- Pydantic validation throughout
-- CriticAgent for quality control
-
-🎨 **Design:**
-- Soft color palette (purple/lavender)
-- Glassmorphism effects
-- Smooth animations (CSS + React state)
-- Responsive layout
-- Micro-interactions on all buttons
+Built with ❤️ using LangChain Multi-Agent orchestration.
