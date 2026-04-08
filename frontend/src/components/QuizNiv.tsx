@@ -304,35 +304,35 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
   const progress = questions.length > 0 ? ((currentIndex + (evaluation ? 1 : 0)) / questions.length) * 100 : 0;
 
   const optionColors = [
-    'linear-gradient(135deg, #e0e7ff, #c7d2fe)',
-    'linear-gradient(135deg, #f3e8ff, #e9d5ff)',
-    'linear-gradient(135deg, #ffedd5, #fed7aa)',
-    'linear-gradient(135deg, #ffe4e6, #fecdd3)',
+    '#f7fafc',
+    '#f7fafc',
+    '#f7fafc',
+    '#f7fafc',
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       {/* Header */}
       {(() => {
         const timerPct = (timeLeft / QUESTION_TIME) * 100;
-        const timerColor = timeLeft > 30 ? '#10B981' : timeLeft > 15 ? '#F59E0B' : '#EF4444';
+        const timerColor = timeLeft > 30 ? '#2563EB' : timeLeft > 15 ? '#F59E0B' : '#EF4444';
         const diff = currentQuestion?.difficulte;
         const diffLabel = diff === 'difficile' ? '🔴 Difficile' : diff === 'moyen' ? '🟡 Moyen' : '🟢 Facile';
-        const diffColor = diff === 'difficile' ? 'rgba(239,68,68,0.2)' : diff === 'moyen' ? 'rgba(245,158,11,0.2)' : 'rgba(16,185,129,0.2)';
+        const diffColor = diff === 'difficile' ? 'rgba(239,68,68,0.15)' : diff === 'moyen' ? 'rgba(245,158,11,0.15)' : 'rgba(37,99,235,0.15)';
         const live = estimateLevel(earnedPoints, totalPoints);
         const circumference = 2 * Math.PI * 14; // r=14
         return (
           <div style={{
             padding: '12px 20px',
-            borderBottom: '1px solid rgba(123,47,190,0.1)',
-            background: 'linear-gradient(135deg, #E91E8C, #7B2FBE)',
+            borderBottom: '1px solid rgba(37,99,235,0.12)',
+            background: 'linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%)',
             color: 'white',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               {/* Left: title + difficulty badge */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <TrophyIcon />
-                <span style={{ fontSize: 15, fontWeight: 700 }}>Test de Niveau</span>
+                <div style={{ color: '#e0f7ff' }}><TrophyIcon /></div>
+                <span style={{ fontSize: 15, fontWeight: 700, color: '#ffffff' }}>Test de Niveau</span>
                 {currentQuestion && !isLoading && (
                   <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: diffColor, letterSpacing: '0.04em' }}>
                     {diffLabel}
@@ -379,36 +379,37 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
       })()}
 
       {/* Progress bar */}
-      <div style={{ height: 4, background: '#f0f0f0' }}>
+      <div style={{ height: 4, background: '#eff6ff' }}>
         <div
           style={{
             height: '100%',
             width: `${progress}%`,
-            background: 'linear-gradient(90deg, #E91E8C, #7B2FBE)',
+            background: 'linear-gradient(90deg, #2563EB, #1d4ed8)',
             transition: 'width 0.3s ease',
           }}
         />
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+      <div style={{ flex: '1 1 auto', overflowY: 'auto', padding: '16px 20px', background: '#ffffff', minHeight: 0 }}>
         {isLoading && !currentQuestion ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '40px 0' }}>
-            <LoaderIcon />
-            <p style={{ fontSize: 14, color: '#666' }}>Chargement du quiz...</p>
+            <div style={{ color: '#2563EB' }}><LoaderIcon /></div>
+            <p style={{ fontSize: 14, color: '#4a5568' }}>Chargement du quiz...</p>
           </div>
         ) : error ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <p style={{ color: '#ef4444', marginBottom: 16 }}>{error}</p>
+            <p style={{ color: '#e53e3e', marginBottom: 16 }}>{error}</p>
             <button
               onClick={fetchQuestions}
               style={{
                 padding: '10px 20px',
                 borderRadius: 8,
-                background: 'linear-gradient(135deg, #E91E8C, #7B2FBE)',
+                background: 'linear-gradient(135deg, #2563EB, #1d4ed8)',
                 border: 'none',
                 color: 'white',
                 cursor: 'pointer',
+                fontWeight: 600,
               }}
             >
               Réessayer
@@ -421,15 +422,15 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
             <p style={{ 
               fontSize: 16, 
               fontWeight: 600, 
-              color: '#1A1230', 
-              marginBottom: 20,
-              lineHeight: 1.5 
+              color: '#1a365d', 
+              marginBottom: 16,
+              lineHeight: 1.4 
             }}>
               {currentQuestion.question}
             </p>
 
             {/* Options */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {Object.entries(currentQuestion.options).map(([letter, text], idx) => {
                 const isSelected = selectedAnswer === letter;
                 const isSubmitted = !!evaluation;
@@ -445,26 +446,27 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
                       display: 'flex',
                       alignItems: 'center',
                       gap: 12,
-                      padding: '14px 16px',
+                      padding: '12px 16px',
                       borderRadius: 12,
                       border: isCorrect 
-                        ? '2px solid #10B981'
+                        ? '2px solid #2563EB'
                         : isWrong 
                         ? '2px solid #ef4444'
                         : isSelected 
-                        ? '2px solid #7B2FBE'
-                        : '2px solid transparent',
+                        ? '2px solid #2563EB'
+                        : '2px solid #e2e8f0',
                       background: isCorrect 
-                        ? '#d1fae5'
+                        ? '#e0f7ff'
                         : isWrong 
                         ? '#fee2e2'
                         : isSelected 
-                        ? '#f3e8ff'
-                        : optionColors[idx % 4],
+                        ? '#e0f7ff'
+                        : '#ffffff',
                       cursor: isSubmitted ? 'default' : 'pointer',
                       textAlign: 'left',
                       width: '100%',
-                      transition: 'all 0.2s',
+                      transition: 'all 0.2s ease',
+                      boxShadow: isSelected || isCorrect ? '0 2px 8px rgba(37,99,235,0.15)' : '0 1px 3px rgba(0,0,0,0.05)',
                     }}
                   >
                     <span
@@ -478,13 +480,14 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
                         fontSize: 12,
                         fontWeight: 700,
                         background: isCorrect 
-                          ? '#10B981'
+                          ? '#2596be'
                           : isWrong 
                           ? '#ef4444'
                           : isSelected 
-                          ? '#7B2FBE'
-                          : 'white',
-                        color: isCorrect || isWrong || isSelected ? 'white' : '#666',
+                          ? '#2596be'
+                          : '#f7fafc',
+                        color: isCorrect || isWrong || isSelected ? 'white' : '#4a5568',
+                        border: isCorrect || isWrong || isSelected ? 'none' : '1px solid #e2e8f0',
                         flexShrink: 0,
                       }}
                     >
@@ -493,7 +496,7 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
                     <span style={{ 
                       fontSize: 14, 
                       fontWeight: 500,
-                      color: isCorrect ? '#065f46' : isWrong ? '#991b1b' : '#1A1230'
+                      color: isCorrect ? '#1d4ed8' : isWrong ? '#991b1b' : '#2d3748'
                     }}>
                       {text}
                     </span>
@@ -502,18 +505,47 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
               })}
             </div>
 
-            {/* Feedback */}
+            {/* Feedback with Next button */}
             {evaluation && (
               <div style={{
-                marginTop: 20, padding: 16, borderRadius: 12,
-                background: evaluation.est_correct ? '#d1fae5' : evaluation.timeout ? '#fee2e2' : '#fef3c7',
-                border: `1px solid ${evaluation.est_correct ? '#10B981' : evaluation.timeout ? '#EF4444' : '#f59e0b'}`,
+                marginTop: 16, padding: 14, borderRadius: 12,
+                background: evaluation.est_correct ? '#e0f7ff' : evaluation.timeout ? '#fee2e2' : '#fff8e1',
+                border: `1px solid ${evaluation.est_correct ? '#2563EB' : evaluation.timeout ? '#ef4444' : '#f59e0b'}`,
               }}>
                 <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 8,
-                  color: evaluation.est_correct ? '#065f46' : evaluation.timeout ? '#991b1b' : '#92400e' }}>
+                  color: evaluation.est_correct ? '#1d4ed8' : evaluation.timeout ? '#991b1b' : '#92400e' }}>
                   {evaluation.est_correct ? '✅ Correct !' : evaluation.timeout ? '⏱ Temps écoulé !' : '💡 Réponse incorrecte'}
                 </p>
-                <p style={{ fontSize: 13, color: '#555' }}>{evaluation.feedback}</p>
+                <p style={{ fontSize: 13, color: '#4a5568', lineHeight: 1.5, marginBottom: 12 }}>{evaluation.feedback}</p>
+                <button
+                  onClick={nextQuestion}
+                  style={{
+                    padding: '10px 20px',
+                    borderRadius: 8,
+                    background: 'linear-gradient(135deg, #2563EB, #1d4ed8)',
+                    border: 'none',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    boxShadow: '0 2px 8px rgba(37,99,235,0.3)',
+                  }}
+                >
+                  {currentIndex === questions.length - 1 ? (
+                    <>
+                      <TrophyIcon />
+                      Voir mon score
+                    </>
+                  ) : (
+                    <>
+                      Suivant
+                      <ChevronRightIcon />
+                    </>
+                  )}
+                </button>
               </div>
             )}
           </div>
@@ -522,12 +554,16 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
 
       {/* Footer */}
       <div style={{
-        padding: '16px 20px',
-        borderTop: '1px solid rgba(123,47,190,0.1)',
-        background: '#f8f6ff',
+        padding: '12px 24px',
+        borderTop: '1px solid rgba(37,99,235,0.12)',
+        background: '#f5f9ff',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        flexShrink: 0,
+        position: 'sticky',
+        bottom: 0,
+        zIndex: 10,
       }}>
         <button
           onClick={onClose}
@@ -535,10 +571,11 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
             padding: '10px 16px',
             borderRadius: 8,
             background: 'transparent',
-            border: 'none',
-            color: '#666',
+            border: '1px solid #e2e8f0',
+            color: '#4a5568',
             cursor: 'pointer',
             fontSize: 13,
+            fontWeight: 500,
           }}
         >
           Passer
@@ -549,9 +586,9 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
             onClick={submitAnswer}
             disabled={!selectedAnswer || isEvaluating}
             style={{
-              padding: '10px 24px',
-              borderRadius: 8,
-              background: !selectedAnswer || isEvaluating ? '#ccc' : 'linear-gradient(135deg, #E91E8C, #7B2FBE)',
+              padding: '12px 28px',
+              borderRadius: 10,
+              background: !selectedAnswer || isEvaluating ? '#cbd5e0' : 'linear-gradient(135deg, #2563EB, #1d4ed8)',
               border: 'none',
               color: 'white',
               cursor: !selectedAnswer || isEvaluating ? 'not-allowed' : 'pointer',
@@ -560,6 +597,8 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
               display: 'flex',
               alignItems: 'center',
               gap: 8,
+              boxShadow: !selectedAnswer || isEvaluating ? 'none' : '0 4px 12px rgba(37,99,235,0.3)',
+              transition: 'all 0.2s ease',
             }}
           >
             {isEvaluating ? (
@@ -578,11 +617,11 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
           <button
             onClick={nextQuestion}
             style={{
-              padding: '10px 24px',
-              borderRadius: 8,
+              padding: '12px 28px',
+              borderRadius: 10,
               background: currentIndex === questions.length - 1 
-                ? 'linear-gradient(135deg, #10B981, #059669)'
-                : 'linear-gradient(135deg, #E91E8C, #7B2FBE)',
+                ? 'linear-gradient(135deg, #2563EB, #1d4ed8)'
+                : 'linear-gradient(135deg, #2563EB, #1d4ed8)',
               border: 'none',
               color: 'white',
               cursor: 'pointer',
@@ -591,6 +630,8 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
               display: 'flex',
               alignItems: 'center',
               gap: 8,
+              boxShadow: '0 4px 12px rgba(37,99,235,0.3)',
+              transition: 'all 0.2s ease',
             }}
           >
             {currentIndex === questions.length - 1 ? (

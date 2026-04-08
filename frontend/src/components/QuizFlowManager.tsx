@@ -18,6 +18,7 @@ import AssessmentModal, { ProfileData } from './AssessmentModal';
 import QuizNiv, { LevelData } from './QuizNiv';
 import RoadmapView from './RoadmapView';
 import aiAgentService, { AdaptiveQuestion, AdaptiveAnswerResponse, RoadmapPhase } from '../services/ai-agent.service';
+import RoadmapStorageService from '../services/roadmap-storage.service';
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -96,17 +97,18 @@ const DOMAIN_LABELS: Record<string, string> = {
 const S: Record<string, React.CSSProperties> = {
   overlay: {
     position: 'fixed', inset: 0, zIndex: 50,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+    display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '20px 16px',
     background: 'rgba(10,6,25,0.55)', backdropFilter: 'blur(16px)',
     fontFamily: "'Segoe UI', system-ui, sans-serif",
+    overflowY: 'auto',
   },
   modal: {
     background: '#FFFFFF', borderRadius: 20,
     boxShadow: '0 24px 60px rgba(123,47,190,0.2)',
-    width: '100%', maxWidth: 600, maxHeight: '90vh',
-    display: 'flex', flexDirection: 'column', overflow: 'hidden',
+    width: '100%', maxWidth: 600, maxHeight: '95vh',
+    display: 'flex', flexDirection: 'column', overflow: 'auto',
   },
-  modalLarge: { maxWidth: 720, height: '88vh' },
+  modalLarge: { maxWidth: 720, maxHeight: '95vh' },
   header: {
     padding: '20px 24px 16px', borderBottom: '1px solid rgba(123,47,190,0.1)',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -480,6 +482,14 @@ export default function QuizFlowManager({ open, onClose, userId, sessionId }: Pr
       // Final: replace with fully validated roadmap
       setParsedRoadmap(roadmap);
       setPhase('done');
+      
+      // Save roadmap to localStorage for later access
+      RoadmapStorageService.saveRoadmap(
+        roadmap,
+        profile,
+        evaluatedLevel.niveau,
+        {} // certStatuses will be updated when user marks certs as complete
+      );
     } catch (err: any) {
       console.error('Roadmap generation error:', err);
       setError(err.message || 'Échec de la génération du roadmap');

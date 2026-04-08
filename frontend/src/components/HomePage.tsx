@@ -153,7 +153,7 @@ export default function HomePage({ onStart }: HomePageProps) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(160deg, #0F0720 0%, #1A0B35 30%, #0D1B3E 65%, #05111F 100%)',
+      background: '#ffffff',
       fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif",
       overflowX: 'hidden',
       position: 'relative',
@@ -166,69 +166,22 @@ export default function HomePage({ onStart }: HomePageProps) {
         <div style={{
           position: 'absolute', top: '-10%', left: '20%',
           width: 600, height: 600, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(37,99,235,0.08) 0%, transparent 70%)',
           filter: 'blur(40px)',
         }} />
         <div style={{
           position: 'absolute', top: '40%', right: '-5%',
           width: 500, height: 500, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(37,99,235,0.06) 0%, transparent 70%)',
           filter: 'blur(40px)',
         }} />
         <div style={{
           position: 'absolute', bottom: '10%', left: '10%',
           width: 400, height: 400, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(233,30,140,0.1) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(37,99,235,0.05) 0%, transparent 70%)',
           filter: 'blur(40px)',
         }} />
       </div>
-
-      {/* ── Top Navigation ─────────────────────────────────────────────────── */}
-      <nav style={{
-        position: 'relative', zIndex: 10,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '20px 40px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        backdropFilter: 'blur(10px)',
-        background: 'rgba(15,7,32,0.4)',
-      }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: 12,
-            background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 20px rgba(124,58,237,0.4)',
-          }}>
-            <span style={{ color: 'white', fontWeight: 900, fontSize: 18, letterSpacing: '-1px' }}>S</span>
-          </div>
-          <div>
-            <div style={{ color: 'white', fontWeight: 800, fontSize: 20, letterSpacing: '-0.5px', lineHeight: 1 }}>
-              Subul
-            </div>
-            <div style={{ color: 'rgba(167,139,250,0.8)', fontSize: 11, fontWeight: 500, letterSpacing: '0.08em' }}>
-              سُبُل · Roadmap AI
-            </div>
-          </div>
-        </div>
-
-        {/* Nav pills */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {FEATURES.map((f, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '6px 14px', borderRadius: 999,
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              color: 'rgba(196,181,253,0.9)',
-              fontSize: 12, fontWeight: 500,
-            }}>
-              <span style={{ color: 'rgba(167,139,250,0.7)', display: 'flex' }}>{f.icon}</span>
-              {f.text}
-            </div>
-          ))}
-        </div>
-      </nav>
 
       {/* ── Hero Section ───────────────────────────────────────────────────── */}
       <div style={{
@@ -244,13 +197,13 @@ export default function HomePage({ onStart }: HomePageProps) {
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 8,
           padding: '8px 20px', borderRadius: 999,
-          background: 'rgba(124,58,237,0.15)',
-          border: '1px solid rgba(167,139,250,0.3)',
+          background: 'rgba(37,99,235,0.1)',
+          border: '1px solid rgba(37,99,235,0.2)',
           marginBottom: 28,
         }}>
           <SparklesIcon />
-          <span style={{ color: '#c4b5fd', fontSize: 13, fontWeight: 600 }}>
-            Propulsé par l'IA · Multi-agent LangGraph
+          <span style={{ color: '#1d4ed8', fontSize: 13, fontWeight: 600 }}>
+           · Multi-agent LangGraph
           </span>
         </div>
 
@@ -261,10 +214,7 @@ export default function HomePage({ onStart }: HomePageProps) {
           letterSpacing: '-1.5px',
           lineHeight: 1.1,
           margin: '0 0 20px',
-          background: 'linear-gradient(135deg, #FFFFFF 0%, #E9D5FF 40%, #93C5FD 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
+          color: '#1a365d',
         }}>
           Votre Roadmap IT<br />Personnalisée
         </h1>
@@ -272,7 +222,7 @@ export default function HomePage({ onStart }: HomePageProps) {
         {/* Subtitle */}
         <p style={{
           fontSize: 'clamp(15px, 2vw, 18px)',
-          color: 'rgba(196,181,253,0.75)',
+          color: '#4a5568',
           maxWidth: 560,
           margin: '0 auto 40px',
           lineHeight: 1.7,
@@ -291,14 +241,14 @@ export default function HomePage({ onStart }: HomePageProps) {
             display: 'inline-flex', alignItems: 'center', gap: 10,
             padding: '16px 36px', borderRadius: 16,
             background: hoveredBtn
-              ? 'linear-gradient(135deg, #6D28D9 0%, #1D4ED8 100%)'
-              : 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
+              ? 'linear-gradient(135deg, #1d4ed8 0%, #2563EB 100%)'
+              : 'linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%)',
             border: 'none', cursor: 'pointer',
             color: 'white', fontSize: 16, fontWeight: 700,
             letterSpacing: '-0.2px',
             boxShadow: hoveredBtn
-              ? '0 0 40px rgba(124,58,237,0.6), 0 8px 32px rgba(0,0,0,0.4)'
-              : '0 0 28px rgba(124,58,237,0.4), 0 4px 20px rgba(0,0,0,0.3)',
+              ? '0 0 40px rgba(37,99,235,0.4), 0 8px 24px rgba(0,0,0,0.15)'
+              : '0 0 28px rgba(37,99,235,0.3), 0 4px 16px rgba(0,0,0,0.1)',
             transform: hoveredBtn ? 'translateY(-2px) scale(1.02)' : 'translateY(0) scale(1)',
             transition: 'all 0.25s cubic-bezier(0.34,1.56,0.64,1)',
           }}
@@ -320,10 +270,10 @@ export default function HomePage({ onStart }: HomePageProps) {
           ].map((stat, i) => (
             <div key={i} style={{ textAlign: 'center' }}>
               <div style={{
-                fontSize: 26, fontWeight: 800, color: 'white',
+                fontSize: 26, fontWeight: 800, color: '#2563EB',
                 letterSpacing: '-0.5px', lineHeight: 1,
               }}>{stat.value}</div>
-              <div style={{ fontSize: 12, color: 'rgba(167,139,250,0.6)', marginTop: 4 }}>{stat.label}</div>
+              <div style={{ fontSize: 12, color: '#4a5568', marginTop: 4 }}>{stat.label}</div>
             </div>
           ))}
         </div>
@@ -339,7 +289,7 @@ export default function HomePage({ onStart }: HomePageProps) {
       }}>
         <p style={{
           textAlign: 'center',
-          color: 'rgba(167,139,250,0.6)',
+          color: '#2563EB',
           fontSize: 13, fontWeight: 600,
           textTransform: 'uppercase', letterSpacing: '0.1em',
           marginBottom: 28,
@@ -365,17 +315,17 @@ export default function HomePage({ onStart }: HomePageProps) {
                   borderRadius: 20,
                   padding: '24px 22px',
                   background: isHovered
-                    ? 'rgba(255,255,255,0.09)'
-                    : 'rgba(255,255,255,0.04)',
+                    ? '#ffffff'
+                    : '#f8fafc',
                   border: isHovered
-                    ? `1px solid ${domain.color}55`
-                    : '1px solid rgba(255,255,255,0.08)',
+                    ? `1px solid ${domain.color}40`
+                    : '1px solid #e2e8f0',
                   cursor: 'default',
                   transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
                   transform: isHovered ? 'translateY(-6px)' : 'translateY(0)',
                   boxShadow: isHovered
-                    ? `0 20px 40px rgba(0,0,0,0.3), 0 0 0 1px ${domain.color}33`
-                    : '0 4px 12px rgba(0,0,0,0.2)',
+                    ? `0 20px 40px rgba(0,0,0,0.1), 0 0 0 1px ${domain.color}20`
+                    : '0 4px 12px rgba(0,0,0,0.05)',
                   animationDelay: `${idx * 0.08}s`,
                 }}
               >
@@ -383,9 +333,9 @@ export default function HomePage({ onStart }: HomePageProps) {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                   <div style={{
                     width: 52, height: 52, borderRadius: 14,
-                    background: isHovered ? domain.bgGradient : 'rgba(255,255,255,0.06)',
+                    background: isHovered ? domain.bgGradient : '#f1f5f9',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: isHovered ? domain.color : 'rgba(196,181,253,0.6)',
+                    color: isHovered ? domain.color : '#64748b',
                     transition: 'all 0.3s ease',
                     boxShadow: isHovered ? `0 4px 16px ${domain.color}30` : 'none',
                   }}>
@@ -397,7 +347,7 @@ export default function HomePage({ onStart }: HomePageProps) {
                 {/* Title */}
                 <h3 style={{
                   fontSize: 16, fontWeight: 700,
-                  color: isHovered ? 'white' : 'rgba(255,255,255,0.85)',
+                  color: isHovered ? '#1a365d' : '#2d3748',
                   margin: '0 0 8px', letterSpacing: '-0.3px',
                   transition: 'color 0.2s',
                 }}>
@@ -407,7 +357,7 @@ export default function HomePage({ onStart }: HomePageProps) {
                 {/* Description */}
                 <p style={{
                   fontSize: 13, lineHeight: 1.6,
-                  color: isHovered ? 'rgba(196,181,253,0.8)' : 'rgba(167,139,250,0.5)',
+                  color: isHovered ? '#4a5568' : '#64748b',
                   margin: '0 0 16px',
                   transition: 'color 0.2s',
                 }}>
@@ -420,9 +370,9 @@ export default function HomePage({ onStart }: HomePageProps) {
                     <span key={ci} style={{
                       fontSize: 11, fontWeight: 600,
                       padding: '3px 10px', borderRadius: 999,
-                      background: isHovered ? `${domain.color}18` : 'rgba(255,255,255,0.05)',
-                      border: isHovered ? `1px solid ${domain.color}40` : '1px solid rgba(255,255,255,0.08)',
-                      color: isHovered ? domain.color : 'rgba(167,139,250,0.5)',
+                      background: isHovered ? `${domain.color}15` : '#f1f5f9',
+                      border: isHovered ? `1px solid ${domain.color}30` : '1px solid #e2e8f0',
+                      color: isHovered ? domain.color : '#64748b',
                       transition: 'all 0.25s ease',
                     }}>
                       {cert}
@@ -445,13 +395,13 @@ export default function HomePage({ onStart }: HomePageProps) {
         <div style={{
           maxWidth: 760, margin: '0 auto',
           borderRadius: 24,
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.07)',
+          background: '#f8fafc',
+          border: '1px solid #e2e8f0',
           padding: '36px 40px',
         }}>
           <p style={{
             textAlign: 'center',
-            color: 'rgba(167,139,250,0.6)',
+            color: '#2563EB',
             fontSize: 12, fontWeight: 700,
             textTransform: 'uppercase', letterSpacing: '0.12em',
             marginBottom: 28,
@@ -467,26 +417,26 @@ export default function HomePage({ onStart }: HomePageProps) {
                 step: '01',
                 title: 'Évaluation',
                 desc: '40 questions adaptatives pour analyser vos compétences en Cloud, Cyber, IA et IoT',
-                color: '#7C3AED',
+                color: '#2563EB',
               },
               {
                 step: '02',
                 title: 'Diagnostic de niveau',
                 desc: '10 questions techniques pour estimer précisément votre niveau actuel dans votre domaine',
-                color: '#2563EB',
+                color: '#1d4ed8',
               },
               {
                 step: '03',
                 title: 'Roadmap IA',
                 desc: 'Votre plan de certifications personnalisé généré par nos agents LangGraph en temps réel',
-                color: '#059669',
+                color: '#2563EB',
               },
             ].map((s) => (
               <div key={s.step} style={{ textAlign: 'center' }}>
                 <div style={{
                   width: 44, height: 44, borderRadius: 12, margin: '0 auto 14px',
-                  background: `${s.color}18`,
-                  border: `1px solid ${s.color}35`,
+                  background: `${s.color}15`,
+                  border: `1px solid ${s.color}30`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 13, fontWeight: 800, color: s.color,
                   letterSpacing: '-0.3px',
@@ -494,13 +444,13 @@ export default function HomePage({ onStart }: HomePageProps) {
                   {s.step}
                 </div>
                 <h4 style={{
-                  fontSize: 15, fontWeight: 700, color: 'white',
+                  fontSize: 15, fontWeight: 700, color: '#1a365d',
                   margin: '0 0 8px', letterSpacing: '-0.2px',
                 }}>
                   {s.title}
                 </h4>
                 <p style={{
-                  fontSize: 12, color: 'rgba(167,139,250,0.55)', lineHeight: 1.6, margin: 0,
+                  fontSize: 12, color: '#64748b', lineHeight: 1.6, margin: 0,
                 }}>
                   {s.desc}
                 </p>
@@ -513,16 +463,16 @@ export default function HomePage({ onStart }: HomePageProps) {
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '6px 16px', borderRadius: 999,
-              background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(167,139,250,0.2)',
+              background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(37,99,235,0.15)',
               marginBottom: 20,
             }}>
               {[
                 'Gratuit', 'Sans inscription', 'Résultats en 2 min'
               ].map((t, i) => (
                 <React.Fragment key={i}>
-                  {i > 0 && <span style={{ color: 'rgba(167,139,250,0.3)', fontSize: 12 }}>·</span>}
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'rgba(196,181,253,0.8)', fontSize: 12 }}>
-                    <span style={{ color: '#10B981' }}><CheckIcon /></span>
+                  {i > 0 && <span style={{ color: 'rgba(37,99,235,0.3)', fontSize: 12 }}>·</span>}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#1d4ed8', fontSize: 12 }}>
+                    <span style={{ color: '#2563EB' }}><CheckIcon /></span>
                     {t}
                   </span>
                 </React.Fragment>
@@ -534,19 +484,19 @@ export default function HomePage({ onStart }: HomePageProps) {
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
                 padding: '14px 32px', borderRadius: 14, margin: '0 auto',
-                background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
+                background: 'linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%)',
                 border: 'none', cursor: 'pointer',
                 color: 'white', fontSize: 15, fontWeight: 700,
-                boxShadow: '0 4px 20px rgba(124,58,237,0.35)',
+                boxShadow: '0 4px 20px rgba(37,99,235,0.35)',
                 transition: 'transform 0.2s ease, box-shadow 0.2s ease',
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 28px rgba(124,58,237,0.5)';
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 28px rgba(37,99,235,0.4)';
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 20px rgba(124,58,237,0.35)';
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 20px rgba(37,99,235,0.35)';
               }}
             >
               <SparklesIcon />
@@ -560,23 +510,23 @@ export default function HomePage({ onStart }: HomePageProps) {
       {/* ── Footer ─────────────────────────────────────────────────────────── */}
       <footer style={{
         position: 'relative', zIndex: 10,
-        borderTop: '1px solid rgba(255,255,255,0.05)',
+        borderTop: '1px solid #e2e8f0',
         padding: '20px 40px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          color: 'rgba(167,139,250,0.4)', fontSize: 13,
+          color: '#64748b', fontSize: 13,
         }}>
           <span style={{
             width: 24, height: 24, borderRadius: 7,
-            background: 'linear-gradient(135deg, #7C3AED, #2563EB)',
+            background: 'linear-gradient(135deg, #2563EB, #1d4ed8)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 11, fontWeight: 900, color: 'white',
           }}>S</span>
           <span>Subul · سُبُل</span>
         </div>
-        <span style={{ color: 'rgba(167,139,250,0.3)', fontSize: 12 }}>
+        <span style={{ color: '#94a3b8', fontSize: 12 }}>
           Votre guide vers la certification IT
         </span>
       </footer>
@@ -591,8 +541,8 @@ export default function HomePage({ onStart }: HomePageProps) {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { overflow-x: hidden; }
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
-        ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: rgba(37,99,235,0.4); border-radius: 3px; }
       `}</style>
     </div>
   );
