@@ -19,7 +19,6 @@ Progress → GET  /progress/{user_id}
 """
 
 import os
-import sys
 import json
 import asyncio
 from typing import Optional, AsyncGenerator, Dict, List
@@ -30,12 +29,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-if _BASE_DIR not in sys.path:
-    sys.path.insert(0, _BASE_DIR)
-
-from langchain_agent import LangChainRoadmapAgent
-from assessment_system import get_assessment_api, VALID_PROFILES, progress_tracker
+from backend.agents.roadmap_agent import LangChainRoadmapAgent
+from backend.assessment.system import get_assessment_api, VALID_PROFILES, progress_tracker
+from backend.api import n8n_routes
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -187,7 +183,10 @@ async def lifespan(app: FastAPI):
     print("Initializing LangChain Roadmap Agent...")
     agent = LangChainRoadmapAgent()
     await agent.setup()
+    # Inject agent into n8n routes for Cosmos DB access
+    n8n_routes.set_n8n_agent(agent)
     print("LangChain Agent ready!")
+    print("n8n automation endpoints ready at /api/n8n/*")
     yield
     print("Shutting down agent...")
     agent = None
@@ -214,6 +213,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include n8n automation routes
+app.include_router(n8n_routes.router)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -311,7 +313,7 @@ async def submit_assessment(request: AssessmentSubmitRequest):
     Scores answers against the question bank that was served to this session
     (LLM-generated if available, static otherwise) so profiling is always
     consistent with what the user actually saw.
-    
+
     NEW: Includes skill gap analysis, benchmarking, and optional confidence scoring.
     """
     ag = _require_agent()
@@ -366,17 +368,17 @@ async def get_skill_gaps(request: AssessmentSubmitRequest):
     """
     try:
         api = get_assessment_api()
-        
+
         # Get base profile
         dynamic_questions = _session_questions.get(request.session_id)
         base_result = api.assessment.calculate_profile(request.answers, dynamic_questions)
         scores = api.assessment.to_dict(base_result)["scores"]
         profile = base_result.primary_profile
-        
+
         # Analyze gaps
         gaps = api.skill_analyzer.analyze(scores, profile)
         learning_path = api.skill_analyzer.get_focused_learning_path(gaps)
-        
+
         return {
             "profile": profile,
             "scores": scores,
@@ -394,7 +396,7 @@ async def get_benchmarks(user_id: str):
     """
     try:
         api = get_assessment_api()
-        
+
         # Get latest assessment from progress tracker
         progress = progress_tracker.get_progress(user_id)
         if not progress or not progress.get("latest"):
@@ -403,14 +405,14 @@ async def get_benchmarks(user_id: str):
                 "has_data": False,
                 "message": "Aucune évaluation trouvée. Passez l'évaluation d'abord."
             }
-        
+
         latest = progress["latest"]
         scores = latest.get("scores", {})
         profile = latest.get("profile", "cloud")
-        
+
         benchmarks = api.benchmarking.get_benchmarks(scores, profile)
         trend = api.benchmarking.get_improvement_trend(user_id)
-        
+
         return {
             "user_id": user_id,
             "has_data": True,
@@ -433,7 +435,7 @@ async def generate_dynamic_questions(request: LevelQuestionsRequest):
     ag = _require_agent()
     try:
         api = get_assessment_api()
-        
+
         # Try to generate dynamic questions
         if ag.search_manager and ag.roadmap_model:
             questions = await api.question_generator.generate_questions_for_domain(
@@ -441,12 +443,12 @@ async def generate_dynamic_questions(request: LevelQuestionsRequest):
                 count=10,
                 difficulty="mixed"
             )
-            
+
             if questions:
                 # Store for scoring
                 session_id = f"dynamic_{request.profile}_{uuid.uuid4().hex[:8]}"
                 _session_questions[session_id] = questions
-                
+
                 return {
                     "questions": questions,
                     "total_questions": len(questions),
@@ -454,7 +456,7 @@ async def generate_dynamic_questions(request: LevelQuestionsRequest):
                     "session_id": session_id,
                     "profile": request.profile,
                 }
-        
+
         # Fallback to static
         questions = api.get_assessment_questions(request.lang)
         return {

@@ -1,8 +1,8 @@
 // @ts-nocheck
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import aiAgentService, { ProfileResult } from './ai-agent.service';
+import React, { useState, useEffect, useRef } from 'react';
+import aiAgentService, { ProfileResult } from '../services/ai-agent.service';
 
 // ─── Simple Icon Components (inline SVG) ─────────────────────────────────────
 
@@ -286,18 +286,30 @@ export default function AssessmentModal({
   const userId = propUserId || (typeof window !== 'undefined' ? localStorage.getItem('user_id') || 'anonymous' : 'anonymous');
   const sessionId = propSessionId || `assess_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
+  // Guard against React StrictMode double-firing the fetch effect
+  const fetchCalledRef = useRef(false);
+
   // Fetch questions on open
   useEffect(() => {
     if (open) {
+      // Reset everything — including the guard — whenever the modal re-opens
+      fetchCalledRef.current = false;
       setPhase('loading');
       setQuestions([]);
       setCurrentIndex(0);
       setAnswers({});
       setProfileData(null);
       setErrorMsg('');
-      fetchQuestions();
     }
   }, [open]);
+
+  // Separate effect so the guard ref is set before the async fetch fires
+  useEffect(() => {
+    if (!open) return;
+    if (fetchCalledRef.current) return; // already in-flight (StrictMode double-invoke guard)
+    fetchCalledRef.current = true;
+    fetchQuestions();
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchQuestions = async () => {
     setShowFallbackOption(false);
@@ -317,7 +329,7 @@ export default function AssessmentModal({
       const qs = data.questions || [];
       if (qs.length === 0) throw new Error('Aucune question reçue');
       setQuestions(qs);
-      setQuestionSource(data.source ?? 'static');
+      setQuestionSource((data.source as any) ?? 'static');
       setPhase('quiz');
     } catch (err) {
       clearTimeout(timeoutId);

@@ -17,7 +17,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import AssessmentModal, { ProfileData } from './AssessmentModal';
 import QuizNiv, { LevelData } from './QuizNiv';
 import RoadmapView from './RoadmapView';
-import aiAgentService, { AdaptiveQuestion, AdaptiveAnswerResponse, RoadmapPhase } from './ai-agent.service';
+import aiAgentService, { AdaptiveQuestion, AdaptiveAnswerResponse, RoadmapPhase } from '../services/ai-agent.service';
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -444,10 +444,10 @@ export default function QuizFlowManager({ open, onClose, userId, sessionId }: Pr
         {
           profile,
           niveau: evaluatedLevel.niveau,
-          profile_data: profileResult,
-          level_data: levelEvaluation,
-          session_id: sessionId,
-          user_id: userId,
+          profileData: profileResult,
+          levelData: levelEvaluation,
+          sessionId,
+          userId,
           lang: 'fr',
         },
         {

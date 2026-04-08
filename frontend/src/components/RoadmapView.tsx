@@ -9,7 +9,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import aiAgentService, { CertStatus } from './ai-agent.service';
+import aiAgentService, { CertStatus } from '../services/ai-agent.service';
 import CoachChat from './CoachChat';
 import NegotiationPanel from './NegotiationPanel';
 

@@ -6,7 +6,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import aiAgentService from './ai-agent.service';
+import aiAgentService from '../services/ai-agent.service';
 
 const QUESTION_TIME = 60; // seconds per question
 
@@ -112,18 +112,27 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
   // Timer
   const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fetchCalledRef = useRef(false);
   // Live level tracking
   const [earnedPoints, setEarnedPoints] = useState(0);
   const [totalPoints, setTotalPoints] = useState(0);
 
-  // Fetch questions on mount
+  // Reset guard when modal opens/profile changes
   useEffect(() => {
     if (open) {
-      fetchQuestions();
+      fetchCalledRef.current = false;
       setEarnedPoints(0);
       setTotalPoints(0);
     }
   }, [open, profile]);
+
+  // Fetch questions — guarded against StrictMode double-invoke
+  useEffect(() => {
+    if (!open) return;
+    if (fetchCalledRef.current) return;
+    fetchCalledRef.current = true;
+    fetchQuestions();
+  }, [open, profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Timer: reset + start on each new question; stop once answered
   useEffect(() => {

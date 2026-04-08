@@ -12,7 +12,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import aiAgentService, { ProgressResponse, ProgressSession, Profile } from './ai-agent.service';
+import aiAgentService, { ProgressResponse, ProgressSession, Profile } from '../services/ai-agent.service';
 
 // ─── Domain config ─────────────────────────────────────────────────────────────
 
