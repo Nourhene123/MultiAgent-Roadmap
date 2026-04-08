@@ -1,8 +1,8 @@
-# Subul — Architecture Documentation
+#  Architecture Documentation
 
 ## 🎯 Overview
 
-Subul is an AI-powered certification roadmap generator that helps users discover their cloud/tech profile and generates personalized learning paths through a multi-phase assessment system.
+ AI-powered certification roadmap generator that helps users discover their cloud/tech profile and generates personalized learning paths through a multi-phase assessment system.
 
 **Core Components:**
 1. **Assessment System** — Detects user profile (Cloud, Cyber, AI, IoT)

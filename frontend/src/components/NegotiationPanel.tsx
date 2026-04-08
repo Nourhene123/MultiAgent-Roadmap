@@ -17,7 +17,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import aiAgentService from './ai-agent.service';
+import aiAgentService from '../services/ai-agent.service';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 

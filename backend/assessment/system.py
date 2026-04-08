@@ -23,7 +23,7 @@ from enum import Enum
 # DATA LOADING
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_QUESTIONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "questions.json")
+_QUESTIONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "questions.json")
 
 
 def _load_questions_data() -> dict:
@@ -888,7 +888,7 @@ import os
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from search_index_manager import SearchIndexManager
+    from backend.search.index_manager import SearchIndexManager
 
 
 class DynamicQuestionGenerator:
