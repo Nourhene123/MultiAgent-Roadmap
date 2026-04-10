@@ -48,12 +48,19 @@ def _get_memory_manager() -> Optional[RoadmapMemoryManager]:
 
 class InactiveUser(BaseModel):
     user_id: str
+    email: Optional[str] = None          # registered via /api/n8n/register-email
     last_session_date: str
     days_inactive: int
+    last_email_sent: Optional[str] = None  # ISO timestamp — used by n8n to skip recently-contacted users
     profile: Optional[str] = None
     level: Optional[str] = None
     roadmap_title: Optional[str] = None
     completed_certs: List[str] = Field(default_factory=list)
+
+
+class RegisterEmailRequest(BaseModel):
+    user_id: str
+    email: str = Field(..., description="User email address for re-engagement notifications")
 
 
 class InactiveUsersResponse(BaseModel):
@@ -147,11 +154,13 @@ async def get_inactive_users(
             if last_date < cutoff_date:
                 user_id = item.get("id", "").replace("roadmap_user_", "")
                 days_inactive = (datetime.utcnow() - last_date).days
-                
+
                 inactive_users.append(InactiveUser(
                     user_id=user_id,
+                    email=item.get("email"),                     # registered email (may be None)
                     last_session_date=last_date_str,
                     days_inactive=days_inactive,
+                    last_email_sent=item.get("last_email_sent"), # lets n8n skip recently-emailed users
                     profile=last_session.get("profile"),
                     level=last_session.get("level"),
                     roadmap_title=last_session.get("roadmap_title"),
@@ -241,6 +250,65 @@ async def get_user_email_history(user_id: str):
         
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to get email history: {exc}")
+
+
+@router.post("/register-email")
+async def register_email(request: RegisterEmailRequest):
+    """
+    Store a user's email address so n8n can send re-engagement emails.
+
+    Call this from the frontend after roadmap generation completes and the user
+    opts into email notifications.  The email is persisted in the user's Cosmos
+    document and returned by /inactive-users so n8n can use it directly.
+    """
+    import re
+    # Basic email format guard
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", request.email):
+        raise HTTPException(status_code=422, detail="Invalid email address format")
+
+    mm = _get_memory_manager()
+    if mm is None or not mm.db.container:
+        # Cosmos not available — return success anyway so the UX isn't blocked
+        return {"success": False, "reason": "Cosmos DB not available", "user_id": request.user_id}
+
+    try:
+        doc = await mm._get_user_doc(request.user_id)
+        doc["email"] = request.email.strip().lower()
+        await mm.db.container.upsert_item(doc)
+        return {
+            "success": True,
+            "user_id": request.user_id,
+            "email": doc["email"],
+            "registered_at": datetime.utcnow().isoformat(),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to register email: {exc}")
+
+
+@router.get("/user/{user_id}/profile")
+async def get_user_profile(user_id: str):
+    """
+    Return a user's stored profile + email for n8n email personalisation.
+    n8n can call this per-user when /inactive-users returns email=null.
+    """
+    mm = _get_memory_manager()
+    if mm is None or not mm.db.container:
+        raise HTTPException(status_code=503, detail="Cosmos DB not available")
+    try:
+        doc = await mm._get_user_doc(user_id)
+        sessions = doc.get("sessions", [])
+        last = sessions[-1] if sessions else {}
+        return {
+            "user_id": user_id,
+            "email": doc.get("email"),
+            "profile": last.get("profile"),
+            "level": last.get("level"),
+            "roadmap_title": last.get("roadmap_title"),
+            "completed_certs": doc.get("completed_certs", []),
+            "last_email_sent": doc.get("last_email_sent"),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 @router.post("/webhook-test")

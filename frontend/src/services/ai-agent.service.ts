@@ -526,6 +526,18 @@ class AiAgentService {
       body: JSON.stringify({ user_id: userId, session_id: sessionId }),
     });
   }
+
+  // ── n8n / Email notifications ───────────────────────────────────────────────
+
+  async registerEmail(userId: string, email: string): Promise<{ success: boolean; email?: string }> {
+    const res = await fetch('/api/n8n/register-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, email }),
+    });
+    if (!res.ok) throw new Error(`Register email failed: ${res.status}`);
+    return res.json();
+  }
 }
 
 const aiAgentService = new AiAgentService();

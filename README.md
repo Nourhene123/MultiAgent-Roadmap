@@ -4,7 +4,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688.svg)](https://fastapi.tiangolo.com/)
-[![React](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://react.dev/)
+[![Next.js](https://img.shields.io/badge/Next.js-14+-000000.svg)](https://nextjs.org/)
 [![LangChain](https://img.shields.io/badge/LangChain-0.1+-green.svg)](https://langchain.com/)
 
 ## 🎯 Overview
@@ -250,7 +250,7 @@ MultiAgent-Roadmap/
 │   │       ├── assessment.py         # AssessmentAPI
 │   │       └── memory.py             # RoadmapMemoryManager
 │   └── tests/                        # Test suite
-├── frontend/                         # React + TypeScript frontend
+├── frontend/                         # Next.js + TypeScript frontend
 │   ├── src/
 │   │   ├── components/               # React components
 │   │   │   ├── App.tsx
@@ -349,7 +349,7 @@ npm run dev
 ## 🛠️ Tech Stack
 
 - **Backend**: Python, FastAPI, LangChain/LangGraph, Pydantic
-- **Frontend**: React, TypeScript, Vite
+- **Frontend**: Next.js, TypeScript
 - **LLM**: Azure OpenAI (GPT-4o)
 - **Vector Search**: Azure AI Search
 - **Memory**: Azure Cosmos DB (optional)
