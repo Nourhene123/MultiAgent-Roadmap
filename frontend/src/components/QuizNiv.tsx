@@ -116,6 +116,7 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
   // Live level tracking
   const [earnedPoints, setEarnedPoints] = useState(0);
   const [totalPoints, setTotalPoints] = useState(0);
+  const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Reset guard when modal opens/profile changes
   useEffect(() => {
@@ -137,6 +138,11 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
   // Timer: reset + start on each new question; stop once answered
   useEffect(() => {
     if (!questions.length || evaluation || isLoading) return;
+    // Clear any pending auto-advance when changing questions
+    if (autoAdvanceRef.current) {
+      clearTimeout(autoAdvanceRef.current);
+      autoAdvanceRef.current = null;
+    }
     setTimeLeft(QUESTION_TIME);
     timerRef.current = setInterval(() => {
       setTimeLeft(prev => {
@@ -149,7 +155,12 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
         return prev - 1;
       });
     }, 1000);
-    return () => clearInterval(timerRef.current!);
+    return () => {
+      clearInterval(timerRef.current!);
+      if (autoAdvanceRef.current) {
+        clearTimeout(autoAdvanceRef.current);
+      }
+    };
   }, [currentIndex, questions.length, evaluation, isLoading]);
 
   const fetchQuestions = async () => {
@@ -210,15 +221,16 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
     }]);
   };
 
-  const submitAnswer = async () => {
-    if (!selectedAnswer || !questions[currentIndex]) return;
+  const submitAnswer = async (autoSelectedAnswer?: string) => {
+    const answerToSubmit = autoSelectedAnswer || selectedAnswer;
+    if (!answerToSubmit || !questions[currentIndex]) return;
     clearInterval(timerRef.current!);
 
     setIsEvaluating(true);
     const currentQuestion = questions[currentIndex];
 
     try {
-      const isCorrect = selectedAnswer === currentQuestion.bonne_reponse;
+      const isCorrect = answerToSubmit === currentQuestion.bonne_reponse;
       const pts = currentQuestion.points ?? 1;
       setTotalPoints(p => p + pts);
       if (isCorrect) setEarnedPoints(p => p + pts);
@@ -233,15 +245,24 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
       setAnswers(prev => [...prev, {
         question_id: currentQuestion.id,
         question: currentQuestion.question,
-        answer: selectedAnswer,
+        answer: answerToSubmit,
         correct: isCorrect,
       }]);
     } finally {
       setIsEvaluating(false);
+      // Auto-advance to next question after delay
+      autoAdvanceRef.current = setTimeout(() => {
+        nextQuestion();
+      }, 2500);
     }
   };
 
   const nextQuestion = async () => {
+    // Clear any pending auto-advance
+    if (autoAdvanceRef.current) {
+      clearTimeout(autoAdvanceRef.current);
+      autoAdvanceRef.current = null;
+    }
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswer(null);
@@ -440,7 +461,13 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
                 return (
                   <button
                     key={letter}
-                    onClick={() => !isSubmitted && setSelectedAnswer(letter)}
+                    onClick={() => {
+                      if (!isSubmitted) {
+                        setSelectedAnswer(letter);
+                        // Auto-submit after short delay to allow visual feedback
+                        setTimeout(() => submitAnswer(letter), 400);
+                      }
+                    }}
                     disabled={isSubmitted}
                     style={{
                       display: 'flex',
@@ -505,7 +532,7 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
               })}
             </div>
 
-            {/* Feedback with Next button */}
+            {/* Feedback with auto-advance indicator */}
             {evaluation && (
               <div style={{
                 marginTop: 16, padding: 14, borderRadius: 12,
@@ -517,35 +544,40 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
                   {evaluation.est_correct ? '✅ Correct !' : evaluation.timeout ? '⏱ Temps écoulé !' : '💡 Réponse incorrecte'}
                 </p>
                 <p style={{ fontSize: 13, color: '#4a5568', lineHeight: 1.5, marginBottom: 12 }}>{evaluation.feedback}</p>
-                <button
-                  onClick={nextQuestion}
-                  style={{
-                    padding: '10px 20px',
-                    borderRadius: 8,
-                    background: 'linear-gradient(135deg, #2563EB, #1d4ed8)',
-                    border: 'none',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    boxShadow: '0 2px 8px rgba(37,99,235,0.3)',
-                  }}
-                >
-                  {currentIndex === questions.length - 1 ? (
-                    <>
-                      <TrophyIcon />
-                      Voir mon score
-                    </>
-                  ) : (
-                    <>
-                      Suivant
-                      <ChevronRightIcon />
-                    </>
-                  )}
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <button
+                    onClick={nextQuestion}
+                    style={{
+                      padding: '10px 20px',
+                      borderRadius: 8,
+                      background: 'linear-gradient(135deg, #2563EB, #1d4ed8)',
+                      border: 'none',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      boxShadow: '0 2px 8px rgba(37,99,235,0.3)',
+                    }}
+                  >
+                    {currentIndex === questions.length - 1 ? (
+                      <>
+                        <TrophyIcon />
+                        Voir mon score
+                      </>
+                    ) : (
+                      <>
+                        Suivant
+                        <ChevronRightIcon />
+                      </>
+                    )}
+                  </button>
+                  <span style={{ fontSize: 12, color: '#6b7280', fontStyle: 'italic' }}>
+                    Auto-suivant dans 2.5s...
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -582,37 +614,11 @@ export default function QuizNiv({ open, onClose, profile, profileData, onLevelCo
         </button>
 
         {!evaluation ? (
-          <button
-            onClick={submitAnswer}
-            disabled={!selectedAnswer || isEvaluating}
-            style={{
-              padding: '12px 28px',
-              borderRadius: 10,
-              background: !selectedAnswer || isEvaluating ? '#cbd5e0' : 'linear-gradient(135deg, #2563EB, #1d4ed8)',
-              border: 'none',
-              color: 'white',
-              cursor: !selectedAnswer || isEvaluating ? 'not-allowed' : 'pointer',
-              fontSize: 14,
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              boxShadow: !selectedAnswer || isEvaluating ? 'none' : '0 4px 12px rgba(37,99,235,0.3)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            {isEvaluating ? (
-              <>
-                <LoaderIcon />
-                Évaluation...
-              </>
-            ) : (
-              <>
-                Valider
-                <ChevronRightIcon />
-              </>
-            )}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 13, color: '#6b7280' }}>
+              Cliquez sur une réponse pour valider automatiquement
+            </span>
+          </div>
         ) : (
           <button
             onClick={nextQuestion}
