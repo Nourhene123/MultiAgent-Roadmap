@@ -383,6 +383,11 @@ export default function QuizFlowManager({ open, onClose, userId, sessionId }: Pr
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Email opt-in (shown once roadmap is ready)
+  const [emailInput, setEmailInput] = useState('');
+  const [emailSaved, setEmailSaved] = useState(false);
+  const [emailSaving, setEmailSaving] = useState(false);
+
   // Reset on close
   useEffect(() => {
     if (!open) {
@@ -612,15 +617,92 @@ export default function QuizFlowManager({ open, onClose, userId, sessionId }: Pr
 
         {/* Done: Roadmap */}
         {phase === 'done' && parsedRoadmap && !error && (
-          <RoadmapView
-            roadmap={parsedRoadmap}
-            profile={profile}
-            levelData={levelData}
-            profileData={profileData as any}
-            onClose={onClose}
-            userId={userId}
-            sessionId={sessionId}
-          />
+          <>
+            {/* ── Email opt-in banner ── */}
+            {!emailSaved && (
+              <div style={{
+                margin: '0 24px 0',
+                padding: '14px 18px',
+                borderRadius: '0 0 16px 16px',
+                background: 'linear-gradient(135deg, rgba(124,58,237,0.08), rgba(37,99,235,0.07))',
+                border: '1px solid rgba(124,58,237,0.18)',
+                borderTop: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                flexWrap: 'wrap',
+              }}>
+                <span style={{ fontSize: 16 }}>🔔</span>
+                <span style={{ fontSize: 12, color: '#5b21b6', fontWeight: 600, flex: 1, minWidth: 180 }}>
+                  Recevez des rappels hebdomadaires pour rester sur votre roadmap
+                </span>
+                <input
+                  type="email"
+                  placeholder="votre@email.com"
+                  value={emailInput}
+                  onChange={e => setEmailInput(e.target.value)}
+                  onKeyDown={async e => {
+                    if (e.key === 'Enter' && emailInput.trim()) {
+                      setEmailSaving(true);
+                      try {
+                        await aiAgentService.registerEmail(userId, emailInput.trim());
+                        setEmailSaved(true);
+                      } catch { /* silent */ } finally { setEmailSaving(false); }
+                    }
+                  }}
+                  style={{
+                    padding: '7px 12px', borderRadius: 8, fontSize: 12,
+                    border: '1px solid rgba(124,58,237,0.25)',
+                    background: 'rgba(255,255,255,0.9)', color: '#1f2937',
+                    outline: 'none', minWidth: 180,
+                  }}
+                />
+                <button
+                  disabled={emailSaving || !emailInput.trim()}
+                  onClick={async () => {
+                    if (!emailInput.trim()) return;
+                    setEmailSaving(true);
+                    try {
+                      await aiAgentService.registerEmail(userId, emailInput.trim());
+                      setEmailSaved(true);
+                    } catch { /* silent */ } finally { setEmailSaving(false); }
+                  }}
+                  style={{
+                    padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700,
+                    background: 'linear-gradient(135deg, #7c3aed, #2563eb)',
+                    border: 'none', color: 'white', cursor: emailSaving ? 'wait' : 'pointer',
+                    opacity: !emailInput.trim() ? 0.5 : 1,
+                    transition: 'opacity 0.2s',
+                  }}
+                >
+                  {emailSaving ? '…' : "M'inscrire"}
+                </button>
+              </div>
+            )}
+            {emailSaved && (
+              <div style={{
+                margin: '0 24px 0',
+                padding: '10px 18px',
+                borderRadius: '0 0 16px 16px',
+                background: 'rgba(16,185,129,0.08)',
+                border: '1px solid rgba(16,185,129,0.2)',
+                borderTop: 'none',
+                fontSize: 12, color: '#059669', fontWeight: 600,
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}>
+                ✅ Vous êtes inscrit — nous vous enverrons des rappels hebdomadaires.
+              </div>
+            )}
+            <RoadmapView
+              roadmap={parsedRoadmap}
+              profile={profile}
+              levelData={levelData}
+              profileData={profileData as any}
+              onClose={onClose}
+              userId={userId}
+              sessionId={sessionId}
+            />
+          </>
         )}
       </div>
       <style>{`.animate-spin{animation:spin 0.7s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}`}</style>

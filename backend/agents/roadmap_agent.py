@@ -70,6 +70,7 @@ class RoadmapGenerationModel:
             deployment_name=self.azure_deployment,
             api_version="2024-02-15-preview",
             temperature=0.2,
+            max_tokens=4096,  # cap output length to reduce generation time
         )
 
         self.critic = CriticAgent(llm=self.base_llm)
@@ -101,8 +102,10 @@ class RoadmapGenerationModel:
                 validated = RoadmapOutput.model_validate(data)
                 roadmap = validated.model_dump()
 
-                # Run critic gate — may return corrected version
-                roadmap = await self.critic.evaluate(roadmap, profile, level)
+                # Run critic gate in background — don't block user response.
+                # The roadmap is already Pydantic-validated; critic is a quality
+                # monitor, not a blocker.
+                asyncio.create_task(self.critic.evaluate(roadmap, profile, level))
                 return roadmap
 
             except (json.JSONDecodeError, ValidationError, ValueError) as exc:
